@@ -30,8 +30,12 @@ for name, value in ENV_DEFAULTS.items():
     os.environ.setdefault(name, value)
 
 import captcha  # noqa: E402
+import config  # noqa: E402
 import contact  # noqa: E402
+import dns_email  # noqa: E402
 import main  # noqa: E402
+import routes.contact as contact_routes  # noqa: E402
+import services.captcha_service as captcha_service  # noqa: E402
 
 VALID_CONTACT = {
     "nome": "Pessoa da Silva",
@@ -45,25 +49,31 @@ VALID_CONTACT = {
 class UnitTests(unittest.TestCase):
     def test_environment_helpers_and_configuration(self):
         with patch.dict(os.environ, {"TEST_VALUE": " presente ", "BOOL_VALUE": "YeS"}):
-            self.assertEqual(main.require_env("TEST_VALUE"), " presente ")
-            self.assertTrue(main.parse_bool_env("BOOL_VALUE"))
+            self.assertEqual(config.require_env("TEST_VALUE"), " presente ")
+            self.assertTrue(config.parse_bool_env("BOOL_VALUE"))
 
         with patch.dict(os.environ, {"BOOL_VALUE": "no"}):
-            self.assertFalse(main.parse_bool_env("BOOL_VALUE"))
+            self.assertFalse(config.parse_bool_env("BOOL_VALUE"))
+
+        with patch.dict(os.environ, {}, clear=True):
+            self.assertTrue(config.optional_bool_env("OPTIONAL_BOOL", True))
+        with patch.dict(os.environ, {"OPTIONAL_BOOL": "false"}):
+            self.assertFalse(config.optional_bool_env("OPTIONAL_BOOL", True))
 
         with patch.dict(os.environ, {}, clear=True):
             with self.assertRaisesRegex(RuntimeError, "TEST_MISSING"):
-                main.require_env("TEST_MISSING")
+                config.require_env("TEST_MISSING")
 
         self.assertEqual(
-            main.parse_recipients(" um@example.com, ,dois@example.com "), ["um@example.com", "dois@example.com"]
+            config.parse_recipients(" um@example.com, ,dois@example.com "), ["um@example.com", "dois@example.com"]
         )
         with self.assertRaisesRegex(RuntimeError, "CONTACT_TO"):
-            main.parse_recipients(" , ")
+            config.parse_recipients(" , ")
 
-        self.assertEqual(main.load_turnstile_config(False), ("", ""))
+        self.assertEqual(config.load_turnstile_config(False), ("", ""))
         with patch.dict(os.environ, {"TURNSTILE_SITE_KEY": "site-key", "TURNSTILE_SECRET_KEY": "secret-key"}):
-            self.assertEqual(main.load_turnstile_config(True), ("site-key", "secret-key"))
+            self.assertEqual(config.load_turnstile_config(True), ("site-key", "secret-key"))
+        self.assertIsNone(config.turnstile_provider(captcha.CaptchaSettings(False, (), 5)))
 
     def test_contact_normalization_validation_and_message(self):
         self.assertEqual(contact.only_digits("+55 (48) 98802-6847"), "5548988026847")
@@ -120,7 +130,15 @@ class UnitTests(unittest.TestCase):
             application.app_context(),
             patch.object(captcha.HttpCaptchaProvider, "verify", return_value=True) as verify,
         ):
-            self.assertTrue(main.verify_captcha("turnstile", "token", "203.0.113.8"))
+            self.assertTrue(
+                captcha_service.verify_captcha(
+                    application.config["CAPTCHA_SETTINGS"],
+                    application.logger,
+                    "turnstile",
+                    "token",
+                    "203.0.113.8",
+                )
+            )
         verify.assert_called_once_with("token", "203.0.113.8")
 
 
@@ -203,13 +221,59 @@ class CaptchaUnitTests(unittest.TestCase):
         self.assertFalse(orchestrator.verify("recaptcha", "token", "127.0.0.1"))
 
 
+class DnsEmailUnitTests(unittest.TestCase):
+    def test_email_domain_with_mx_accepts_mail(self):
+        def resolver(domain, record_type):
+            self.assertEqual((domain, record_type), ("example.com", "MX"))
+            return ["10 mail.example.com."]
+
+        self.assertEqual(dns_email.email_domain(" Pessoa@Example.COM "), "example.com")
+        self.assertEqual(dns_email.record_text('"10 mail.example.com."'), "10 mail.example.com.")
+        self.assertTrue(dns_email.email_domain_accepts_mail("pessoa@example.com", resolver, use_doh=False))
+        self.assertTrue(dns_email.mx_record_accepts_mail("10 mail.example.com."))
+
+    def test_invalid_email_missing_mx_and_null_mx_are_rejected(self):
+        with self.assertRaisesRegex(ValueError, "e-mail"):
+            dns_email.email_domain("invalid")
+
+        def resolver(_domain, _record_type):
+            raise dns_email.dns.resolver.NoAnswer
+
+        self.assertFalse(dns_email.email_domain_accepts_mail("pessoa@example.com", resolver, use_doh=False))
+        self.assertEqual(dns_email.resolve_mx("example.com", resolver, use_doh=False), ())
+        self.assertFalse(dns_email.mx_record_accepts_mail("0 ."))
+
+    def test_dns_over_https_fallback(self):
+        response = Mock()
+        response.raise_for_status.return_value = None
+        response.json.return_value = {"Answer": [{"data": '"10 mail.example.com."'}]}
+
+        def resolver(_domain, _record_type):
+            raise dns_email.dns.resolver.Timeout
+
+        with patch.object(dns_email.requests, "get", return_value=response) as get:
+            self.assertEqual(dns_email.resolve_mx("example.com", resolver), ("10 mail.example.com.",))
+        get.assert_called_once()
+
+        response.json.side_effect = ValueError
+        with patch.object(dns_email.requests, "get", return_value=response):
+            self.assertEqual(dns_email.resolve_mx_doh("example.com"), ())
+
+
 class ApiFunctionalIntegrationTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         dist = Path(self.temp.name)
         (dist / "index.html").write_text("<title>React frontend</title>", encoding="utf-8")
         (dist / "asset.js").write_text("console.log('asset')", encoding="utf-8")
-        self.app = main.create_app({"TESTING": True, "FRONTEND_DIST": dist, "CAPTCHA_ENABLED": False})
+        self.app = main.create_app(
+            {
+                "TESTING": True,
+                "FRONTEND_DIST": dist,
+                "CAPTCHA_ENABLED": False,
+                "EMAIL_DNS_VALIDATION_ENABLED": False,
+            }
+        )
         self.client = self.app.test_client()
 
     def tearDown(self):
@@ -252,6 +316,19 @@ class ApiFunctionalIntegrationTests(unittest.TestCase):
         self.assertEqual(honeypot.status_code, 400)
         send_mail.assert_not_called()
 
+    def test_email_domain_without_mx_is_rejected(self):
+        with (
+            patch.dict(self.app.config, {"EMAIL_DNS_VALIDATION_ENABLED": True}),
+            patch.object(contact_routes, "email_domain_accepts_mail", return_value=False) as accepts_mail,
+            patch.object(main.mail, "send") as send_mail,
+        ):
+            response = self.client.post("/api/contact", json={**VALID_CONTACT, "email": "pessoa@inventado.test"})
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("domínio", response.get_json()["message"])
+        accepts_mail.assert_called_once_with("pessoa@inventado.test")
+        send_mail.assert_not_called()
+
     def test_captcha_failure_uses_each_proxy_ip_source(self):
         cases = [
             ({"CF-Connecting-IP": "203.0.113.1"}, "203.0.113.1"),
@@ -262,7 +339,7 @@ class ApiFunctionalIntegrationTests(unittest.TestCase):
             with (
                 self.subTest(headers=headers),
                 patch.dict(self.app.config, {"CAPTCHA_ENABLED": True}),
-                patch.object(main, "verify_captcha", return_value=False) as verify,
+                patch.object(contact_routes, "verify_captcha", return_value=False) as verify,
                 patch.object(main.mail, "send") as send_mail,
             ):
                 response = self.client.post(
@@ -271,7 +348,13 @@ class ApiFunctionalIntegrationTests(unittest.TestCase):
                     headers=headers,
                 )
             self.assertEqual(response.status_code, 400)
-            verify.assert_called_once_with("turnstile", "token", expected_ip)
+            verify.assert_called_once_with(
+                self.app.config["CAPTCHA_SETTINGS"],
+                self.app.logger,
+                "turnstile",
+                "token",
+                expected_ip,
+            )
             send_mail.assert_not_called()
 
     def test_valid_json_and_form_contacts_send_mail(self):
@@ -289,7 +372,7 @@ class ApiFunctionalIntegrationTests(unittest.TestCase):
     def test_valid_captcha_allows_delivery(self):
         with (
             patch.dict(self.app.config, {"CAPTCHA_ENABLED": True}),
-            patch.object(main, "verify_captcha", return_value=True) as verify,
+            patch.object(contact_routes, "verify_captcha", return_value=True) as verify,
             patch.object(main.mail, "send") as send_mail,
         ):
             response = self.client.post(
@@ -297,7 +380,13 @@ class ApiFunctionalIntegrationTests(unittest.TestCase):
                 json={**VALID_CONTACT, "captchaProvider": "turnstile", "captchaToken": "valid-token"},
             )
         self.assertEqual(response.status_code, 200)
-        verify.assert_called_once_with("turnstile", "valid-token", "127.0.0.1")
+        verify.assert_called_once_with(
+            self.app.config["CAPTCHA_SETTINGS"],
+            self.app.logger,
+            "turnstile",
+            "valid-token",
+            "127.0.0.1",
+        )
         send_mail.assert_called_once()
 
     def test_mail_failures_return_safe_json(self):

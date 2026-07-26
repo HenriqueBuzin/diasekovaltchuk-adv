@@ -5,7 +5,11 @@ Site institucional com backend Flask e frontend React 19 + TypeScript + Vite.
 ## Arquitetura
 
 - `backend/`: API Flask, validação, CAPTCHA desacoplado por provider e envio de e-mail;
+- `backend/routes/`: blueprints de API, frontend estático e handlers de erro;
+- `backend/services/`: serviços de CAPTCHA, envio de contato e verificação auxiliar;
 - `frontend/`: aplicação React com TypeScript estrito, estilos, assets e testes de componentes;
+- `frontend/src/content/`: textos e listas institucionais usados pelas seções;
+- `frontend/src/components/sections/`: seções visuais da página;
 - `tests/`: testes de API/backend e E2E;
 - `Dockerfile`: build multi-stage que compila o React e entrega o resultado pelo Flask.
 
@@ -25,6 +29,7 @@ O CAPTCHA segue Strategy + Adapter no backend e fallback por provider no fronten
 Configuração no `.env`:
 
 ```env
+COMPOSE_PROJECT_NAME=diasekovaltchuk-adv
 CAPTCHA_ENABLED=true
 CAPTCHA_PROVIDERS=turnstile,recaptcha,hcaptcha
 CAPTCHA_TIMEOUT_SECONDS=5
@@ -40,6 +45,21 @@ HCAPTCHA_SECRET_KEY=
 ```
 
 Se só o Turnstile estiver configurado, o site continua funcionando como antes. Para ativar fallback, adicione as chaves dos providers desejados e coloque a ordem em `CAPTCHA_PROVIDERS`.
+
+No ambiente de desenvolvimento, use `COMPOSE_PROJECT_NAME=diasekovaltchuk-adv-dev` para manter os containers
+separados da produção. O Docker Compose lê essa variável do `.env` automaticamente.
+
+## Validação do e-mail de contato
+
+Antes de enviar o formulário, o backend consulta o registro MX do domínio informado. Assim, endereços com
+domínios inventados são recusados sem bloquear provedores válidos como Gmail, Outlook ou serviços corporativos.
+
+```env
+EMAIL_DNS_VALIDATION_ENABLED=true
+```
+
+A consulta confirma que o domínio recebe e-mail; por limitação do protocolo, ela não confirma a existência da
+caixa postal individual.
 
 ## Desenvolvimento local
 
