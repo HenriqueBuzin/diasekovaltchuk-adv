@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Mapping, Protocol
 
 import requests
+from messages import message
 
 VERIFY_URLS = {
     "turnstile": "https://challenges.cloudflare.com/turnstile/v0/siteverify",
@@ -121,7 +122,7 @@ def load_captcha_settings(environ: Mapping[str, str] | None = None, enabled: boo
 
 def load_provider_config(environ: Mapping[str, str], name: str) -> CaptchaProviderConfig:
     if name not in ENV_PREFIXES:
-        raise RuntimeError(f"Provider de CAPTCHA não suportado: {name}")
+        raise RuntimeError(message("unsupported_captcha_provider", name=name))
 
     prefix = ENV_PREFIXES[name]
     site_key = require_config(environ, f"{prefix}_SITE_KEY")
@@ -133,5 +134,5 @@ def load_provider_config(environ: Mapping[str, str], name: str) -> CaptchaProvid
 def require_config(environ: Mapping[str, str], name: str) -> str:
     value = environ.get(name)
     if not value:
-        raise RuntimeError(f"Variável de ambiente obrigatória ausente: {name}")
+        raise RuntimeError(message("missing_env", name=name))
     return value
