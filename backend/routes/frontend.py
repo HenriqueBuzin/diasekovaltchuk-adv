@@ -9,7 +9,7 @@ bp = Blueprint("frontend", __name__)
 @bp.route("/", defaults={"path": ""})
 @bp.route("/<path:path>")
 def frontend(path: str):
-    if path.startswith("api/"):
+    if path.startswith("api/") or path in {"docs", "openapi.json"}:
         abort(404)
 
     dist = Path(current_app.config["FRONTEND_DIST"])

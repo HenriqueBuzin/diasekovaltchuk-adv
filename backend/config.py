@@ -69,6 +69,7 @@ def environment_config() -> dict:
         "SOCIAL_FB_URL": require_env("SOCIAL_FB_URL"),
         "SOCIAL_IG_URL": require_env("SOCIAL_IG_URL"),
         "EMAIL_DNS_VALIDATION_ENABLED": optional_bool_env("EMAIL_DNS_VALIDATION_ENABLED", True),
+        "SWAGGER_ENABLED": optional_bool_env("SWAGGER_ENABLED", False),
         "CAPTCHA_ENABLED": captcha_enabled,
         "CAPTCHA_SETTINGS": captcha_settings,
         "TURNSTILE_SITE_KEY": turnstile.site_key if turnstile else "",

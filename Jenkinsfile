@@ -38,7 +38,7 @@ pipeline {
                             ln -sfn "$env_file" .env
                             if [ "$PIPELINE_BRANCH" = "main" ]; then
                               export COMPOSE_PROJECT_NAME=diasekovaltchuk-adv
-                              docker compose -f docker-compose.prod.yml config --quiet
+                              docker compose -f docker-compose-prod.yml config --quiet
                             else
                               export COMPOSE_PROJECT_NAME=diasekovaltchuk-adv-dev
                               docker compose -f docker-compose.yml config --quiet
@@ -74,7 +74,7 @@ pipeline {
 
                     def suffix = branch == 'main' ? '' : '-dev'
                     def composeFiles = branch == 'main'
-                        ? '-f docker-compose.prod.yml'
+                        ? '-f docker-compose-prod.yml'
                         : '-f docker-compose.yml'
 
                     sh """

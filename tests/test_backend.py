@@ -322,6 +322,19 @@ class ApiFunctionalIntegrationTests(unittest.TestCase):
         self.assertEqual(missing.status_code, 503)
         self.assertIn("npm run build", missing.get_json()["message"])
 
+    def test_swagger_is_available_only_when_enabled(self):
+        self.assertEqual(self.client.get("/docs").status_code, 404)
+        self.assertEqual(self.client.get("/openapi.json").status_code, 404)
+
+        self.app.config["SWAGGER_ENABLED"] = True
+        docs = self.client.get("/docs")
+        specification = self.client.get("/openapi.json")
+        self.assertEqual(docs.status_code, 200)
+        self.assertIn("SwaggerUIBundle", docs.get_data(as_text=True))
+        self.assertEqual(specification.status_code, 200)
+        self.assertEqual(specification.get_json()["openapi"], "3.1.0")
+        self.assertIn("/api/contact", specification.get_json()["paths"])
+
     def test_method_and_request_size_contracts(self):
         self.assertEqual(self.client.get("/api/contact").status_code, 404)
         response = self.client.post("/api/contact", json={**VALID_CONTACT, "mensagem": "X" * (65 * 1024)})
