@@ -50,29 +50,18 @@ VALID_CONTACT = {
 class UnitTests(unittest.TestCase):
     def test_docker_secret_file_and_environment_fallback(self):
         with tempfile.TemporaryDirectory() as directory:
-            secret_file = Path(directory) / "app_secrets.json"
-            secret_file.write_text(
-                '{"FLASK_SECRET_KEY":" file-secret ","MAIL_PASSWORD":"mail-secret"}',
-                encoding="utf-8",
-            )
-            source = {"APP_SECRETS_FILE": str(secret_file), "FLASK_SECRET_KEY": "ignored"}
+            secret_file = Path(directory) / "flask_secret_key"
+            secret_file.write_text(" file-secret \n", encoding="utf-8")
+            source = {"FLASK_SECRET_KEY_FILE": str(secret_file), "FLASK_SECRET_KEY": "ignored"}
             self.assertEqual(secret_loader.require_secret("FLASK_SECRET_KEY", source), "file-secret")
-            self.assertEqual(secret_loader.load_secret_file(str(secret_file))["MAIL_PASSWORD"], "mail-secret")
-
-            invalid_files = {
-                "invalid-json": "{",
-                "invalid-root": "[]",
-                "invalid-value": '{"FLASK_SECRET_KEY": 123}',
-            }
-            for name, contents in invalid_files.items():
-                with self.subTest(name=name):
-                    invalid_file = Path(directory) / f"{name}.json"
-                    invalid_file.write_text(contents, encoding="utf-8")
-                    with self.assertRaisesRegex(RuntimeError, "arquivo de segredos"):
-                        secret_loader.load_secret_file(str(invalid_file))
+            self.assertEqual(secret_loader.read_secret_file(str(secret_file)), "file-secret")
 
             with self.assertRaisesRegex(RuntimeError, "arquivo de segredos"):
-                secret_loader.load_secret_file(str(Path(directory) / "missing.json"))
+                secret_loader.read_secret_file(str(Path(directory) / "missing"))
+
+            secret_file.write_text(" ", encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "FLASK_SECRET_KEY"):
+                secret_loader.require_secret("FLASK_SECRET_KEY", source)
 
         self.assertEqual(secret_loader.require_secret("DIRECT_SECRET", {"DIRECT_SECRET": " direct "}), "direct")
         for source in ({}, {"EMPTY_SECRET": " "}):

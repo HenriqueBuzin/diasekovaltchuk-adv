@@ -17,44 +17,28 @@ Em produção existe uma única porta HTTP. O Flask responde aos endpoints `/api
 
 ## Docker Secrets
 
-Os valores sensíveis são montados pelo Docker Compose em `/run/secrets/app_secrets`. O `.env` guarda somente
-configurações públicas e o caminho do arquivo de origem no host:
-
-```env
-# produção
-COMPOSE_PROJECT_NAME=diasekovaltchuk-adv
-APP_SECRETS_SOURCE=/root/secrets/diasekovaltchuk-adv/app_secrets.json
-
-# desenvolvimento
-COMPOSE_PROJECT_NAME=diasekovaltchuk-adv-dev
-APP_SECRETS_SOURCE=/root/secrets/diasekovaltchuk-adv-dev/app_secrets.json
-```
-
-Crie um arquivo para cada ambiente seguindo [`docker-secrets.example.json`](docker-secrets.example.json):
-
-```json
-{
-  "FLASK_SECRET_KEY": "gere-uma-chave-forte",
-  "MAIL_PASSWORD": "senha-de-aplicativo",
-  "TURNSTILE_SECRET_KEY": "chave-secreta-turnstile",
-  "RECAPTCHA_SECRET_KEY": "",
-  "HCAPTCHA_SECRET_KEY": ""
-}
-```
-
-No servidor:
+O Jenkins mantém o mesmo fluxo de link simbólico para o arquivo externo:
 
 ```bash
-install -d -m 700 /root/secrets/diasekovaltchuk-adv
-install -d -m 700 /root/secrets/diasekovaltchuk-adv-dev
-chmod 600 /root/secrets/diasekovaltchuk-adv/app_secrets.json
-chmod 600 /root/secrets/diasekovaltchuk-adv-dev/app_secrets.json
+ln -sf /root/envs/diasekovaltchuk-adv.env .env
 ```
 
-Remova `FLASK_SECRET_KEY`, `MAIL_PASSWORD`, `TURNSTILE_SECRET_KEY`, `RECAPTCHA_SECRET_KEY` e
-`HCAPTCHA_SECRET_KEY` dos arquivos `.env` externos depois de copiá-los para o JSON. O Compose sobrescreve essas
-variáveis com vazio no container e o backend prioriza `APP_SECRETS_FILE`, evitando exposição pelo
-`docker inspect`. Para execução sem Docker, as variáveis diretas continuam aceitas como compatibilidade local.
+O Docker Compose usa as variáveis sensíveis desse `.env` como fonte e monta cada uma como arquivo dentro do
+container:
+
+```text
+FLASK_SECRET_KEY     -> /run/secrets/flask_secret_key
+MAIL_PASSWORD        -> /run/secrets/mail_password
+TURNSTILE_SECRET_KEY -> /run/secrets/turnstile_secret_key
+RECAPTCHA_SECRET_KEY -> /run/secrets/recaptcha_secret_key
+HCAPTCHA_SECRET_KEY  -> /run/secrets/hcaptcha_secret_key
+```
+
+Os valores permanecem no arquivo externo do servidor, mas são sobrescritos com vazio no ambiente do container.
+O backend recebe apenas os caminhos `*_FILE`, evitando que os valores apareçam no `docker inspect`.
+
+Proteja os arquivos externos com `chmod 600`. Para execução sem Docker, as variáveis diretas continuam aceitas
+como compatibilidade local.
 
 ## CAPTCHA
 
@@ -76,13 +60,16 @@ CAPTCHA_PROVIDERS=turnstile,recaptcha,hcaptcha
 CAPTCHA_TIMEOUT_SECONDS=5
 
 TURNSTILE_SITE_KEY=
+TURNSTILE_SECRET_KEY=
 RECAPTCHA_SITE_KEY=
+RECAPTCHA_SECRET_KEY=
 HCAPTCHA_SITE_KEY=
+HCAPTCHA_SECRET_KEY=
 ```
 
-As chaves secretas dos providers ficam no arquivo Docker Secret. Se só o Turnstile estiver configurado, o site
-continua funcionando como antes. Para ativar fallback, adicione as chaves dos providers desejados e coloque a
-ordem em `CAPTCHA_PROVIDERS`.
+O Compose transforma as chaves secretas em arquivos Docker Secrets. Se só o Turnstile estiver configurado, o
+site continua funcionando como antes. Para ativar fallback, adicione as chaves dos providers desejados e coloque
+a ordem em `CAPTCHA_PROVIDERS`.
 
 No ambiente de desenvolvimento, use `COMPOSE_PROJECT_NAME=diasekovaltchuk-adv-dev` para manter os containers
 separados da produção. O Docker Compose lê essa variável do `.env` automaticamente.

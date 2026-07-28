@@ -31,7 +31,6 @@ pipeline {
                         ln -sf /root/envs/${project}.env .env
 
                         echo "Validando configuração e Docker Secrets..."
-                        test -s /root/secrets/${project}/app_secrets.json
                         docker compose --profile prod config --quiet
 
                         echo "🛑 Derrubando containers antigos..."
@@ -57,7 +56,6 @@ pipeline {
                         ln -sf /root/envs/${project}-dev.env .env
 
                         echo "Validando configuração e Docker Secrets..."
-                        test -s /root/secrets/${project}-dev/app_secrets.json
                         docker compose --profile dev config --quiet
 
                         echo "🛑 Derrubando containers antigos..."
