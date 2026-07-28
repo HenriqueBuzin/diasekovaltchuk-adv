@@ -3,7 +3,7 @@ name = "diasekovaltchukadv"
 version = "1.0.0"
 description = "Site institucional Dias Kovaltchuk Advogadas Associadas"
 authors = [{ name = "Henrique Buzin" }]
-requires-python = ">=3.14,<3.15"
+requires-python = "==3.14.6"
 dependencies = [
     "blinker==1.9.0",
     "click==8.4.2",

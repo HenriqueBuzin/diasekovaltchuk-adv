@@ -7,12 +7,14 @@ from routes.contact import bp as contact_bp
 from routes.errors import register_error_handlers
 from routes.frontend import bp as frontend_bp
 from routes.site_config import bp as site_config_bp
+from routes.swagger import bp as swagger_bp
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 
 def register_routes(app: Flask) -> None:
     app.register_blueprint(site_config_bp)
     app.register_blueprint(contact_bp)
+    app.register_blueprint(swagger_bp)
     app.register_blueprint(frontend_bp)
     register_error_handlers(app)
 
