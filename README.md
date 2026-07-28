@@ -20,7 +20,7 @@ Em produção existe uma única porta HTTP. O Flask responde aos endpoints `/api
 O Jenkins mantém o mesmo fluxo de link simbólico para o arquivo externo:
 
 ```bash
-ln -sf /root/envs/diasekovaltchuk-adv.env .env
+ln -sfn /root/projects/envs/diasekovaltchuk-adv.env .env
 ```
 
 O Docker Compose usa as variáveis sensíveis desse `.env` como fonte e monta cada uma como arquivo dentro do

@@ -13,6 +13,7 @@ pipeline {
 
                     def branch = env.BRANCH_NAME
                     def project = "diasekovaltchuk-adv"
+                    def envDir = "/root/projects/envs"
 
                     echo "🚀 Branch: ${branch}"
 
@@ -28,7 +29,11 @@ pipeline {
                         git clean -fd
 
                         echo "🔗 Aplicando .env..."
-                        ln -sf /root/envs/${project}.env .env
+                        test -f ${envDir}/${project}.env
+                        ln -sfn ${envDir}/${project}.env .env
+
+                        echo "Validando configuração e Docker Secrets..."
+                        docker compose --profile prod config --quiet
 
                         echo "Validando configuração e Docker Secrets..."
                         docker compose --profile prod config --quiet
@@ -53,7 +58,11 @@ pipeline {
                         git clean -fd
 
                         echo "🔗 Aplicando .env..."
-                        ln -sf /root/envs/${project}-dev.env .env
+                        test -f ${envDir}/${project}-dev.env
+                        ln -sfn ${envDir}/${project}-dev.env .env
+
+                        echo "Validando configuração e Docker Secrets..."
+                        docker compose --profile dev config --quiet
 
                         echo "Validando configuração e Docker Secrets..."
                         docker compose --profile dev config --quiet
