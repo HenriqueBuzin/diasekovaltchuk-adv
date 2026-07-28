@@ -75,6 +75,7 @@ jobs:
           image: diasekovaltchuk-adv:ci
           fail-build: true
           severity-cutoff: high
+          only-fixed: true
 
       - name: Deploy
         run: echo "Deploy autorizado apenas pelo Jenkins em main/dev."
