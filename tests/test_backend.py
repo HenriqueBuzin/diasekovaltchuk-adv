@@ -35,6 +35,7 @@ import contact  # noqa: E402
 import dns_email  # noqa: E402
 import main  # noqa: E402
 import routes.contact as contact_routes  # noqa: E402
+import secret_loader  # noqa: E402
 import services.captcha_service as captcha_service  # noqa: E402
 
 VALID_CONTACT = {
@@ -47,6 +48,37 @@ VALID_CONTACT = {
 
 
 class UnitTests(unittest.TestCase):
+    def test_docker_secret_file_and_environment_fallback(self):
+        with tempfile.TemporaryDirectory() as directory:
+            secret_file = Path(directory) / "app_secrets.json"
+            secret_file.write_text(
+                '{"FLASK_SECRET_KEY":" file-secret ","MAIL_PASSWORD":"mail-secret"}',
+                encoding="utf-8",
+            )
+            source = {"APP_SECRETS_FILE": str(secret_file), "FLASK_SECRET_KEY": "ignored"}
+            self.assertEqual(secret_loader.require_secret("FLASK_SECRET_KEY", source), "file-secret")
+            self.assertEqual(secret_loader.load_secret_file(str(secret_file))["MAIL_PASSWORD"], "mail-secret")
+
+            invalid_files = {
+                "invalid-json": "{",
+                "invalid-root": "[]",
+                "invalid-value": '{"FLASK_SECRET_KEY": 123}',
+            }
+            for name, contents in invalid_files.items():
+                with self.subTest(name=name):
+                    invalid_file = Path(directory) / f"{name}.json"
+                    invalid_file.write_text(contents, encoding="utf-8")
+                    with self.assertRaisesRegex(RuntimeError, "arquivo de segredos"):
+                        secret_loader.load_secret_file(str(invalid_file))
+
+            with self.assertRaisesRegex(RuntimeError, "arquivo de segredos"):
+                secret_loader.load_secret_file(str(Path(directory) / "missing.json"))
+
+        self.assertEqual(secret_loader.require_secret("DIRECT_SECRET", {"DIRECT_SECRET": " direct "}), "direct")
+        for source in ({}, {"EMPTY_SECRET": " "}):
+            with self.subTest(source=source), self.assertRaisesRegex(RuntimeError, "EMPTY_SECRET"):
+                secret_loader.require_secret("EMPTY_SECRET", source)
+
     def test_environment_helpers_and_configuration(self):
         with patch.dict(os.environ, {"TEST_VALUE": " presente ", "BOOL_VALUE": "YeS"}):
             self.assertEqual(config.require_env("TEST_VALUE"), " presente ")

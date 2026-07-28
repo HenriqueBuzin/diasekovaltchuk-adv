@@ -4,6 +4,7 @@ from pathlib import Path
 from captcha import CaptchaSettings, load_captcha_settings
 from contact import FIELD_LIMITS, only_digits
 from messages import message
+from secret_loader import require_secret
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -52,7 +53,7 @@ def environment_config() -> dict:
 
     return {
         "DEBUG": parse_bool_env("FLASK_DEBUG"),
-        "SECRET_KEY": require_env("FLASK_SECRET_KEY"),
+        "SECRET_KEY": require_secret("FLASK_SECRET_KEY"),
         "PREFERRED_URL_SCHEME": "https",
         "MAX_CONTENT_LENGTH": 64 * 1024,
         "MAIL_SERVER": require_env("MAIL_SERVER"),
@@ -60,7 +61,7 @@ def environment_config() -> dict:
         "MAIL_USE_TLS": parse_bool_env("MAIL_USE_TLS"),
         "MAIL_USE_SSL": parse_bool_env("MAIL_USE_SSL"),
         "MAIL_USERNAME": require_env("MAIL_USERNAME"),
-        "MAIL_PASSWORD": require_env("MAIL_PASSWORD"),
+        "MAIL_PASSWORD": require_secret("MAIL_PASSWORD"),
         "MAIL_DEFAULT_SENDER": require_env("MAIL_USERNAME"),
         "CONTACT_EMAIL": require_env("CONTACT_EMAIL"),
         "WHATS_NUMBER": whats_number,
