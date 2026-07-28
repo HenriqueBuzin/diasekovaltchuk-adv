@@ -1,11 +1,17 @@
-name: Tests
+name: CI
 
 on:
   push:
+    branches: [main, dev]
   pull_request:
+    branches: [main, dev]
 
 permissions:
   contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   full-test-suite:
@@ -14,10 +20,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.14.6"
 
@@ -28,7 +34,7 @@ jobs:
         run: poetry install --no-interaction
 
       - name: Set up Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: "24.18.0"
           cache: npm
@@ -41,3 +47,30 @@ jobs:
 
       - name: Run complete test suite
         run: poetry run python scripts/run_tests.py
+
+      - name: Validate Compose
+        env:
+          FLASK_SECRET_KEY: ci-flask-key
+          MAIL_PASSWORD: ci-mail-password
+          TURNSTILE_SECRET_KEY: ci-turnstile
+          RECAPTCHA_SECRET_KEY: ci-recaptcha
+          HCAPTCHA_SECRET_KEY: ci-hcaptcha
+        run: |
+          docker compose -f docker-compose.yml config --quiet
+          docker compose -f docker-compose.prod.yml config --quiet
+
+      - name: Build container
+        run: docker build --tag diasekovaltchuk-adv:ci .
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
+        with:
+          image: diasekovaltchuk-adv:ci
+          artifact-name: diasekovaltchuk-adv.spdx.json
+
+      - name: Scan container
+        uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7.4.0
+        with:
+          image: diasekovaltchuk-adv:ci
+          fail-build: true
+          severity-cutoff: high

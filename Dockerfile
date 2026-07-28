@@ -10,7 +10,8 @@ FROM python:3.14.6-slim-bookworm
 
 ENV POETRY_VERSION=2.4.1 \
     POETRY_VIRTUALENVS_CREATE=false \
-    POETRY_NO_INTERACTION=1
+    POETRY_NO_INTERACTION=1 \
+    TZ=America/Sao_Paulo
 
 WORKDIR /app
 

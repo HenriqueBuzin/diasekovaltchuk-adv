@@ -54,7 +54,6 @@ O CAPTCHA segue Strategy + Adapter no backend e fallback por provider no fronten
 Configuração no `.env`:
 
 ```env
-COMPOSE_PROJECT_NAME=diasekovaltchuk-adv
 CAPTCHA_ENABLED=true
 CAPTCHA_PROVIDERS=turnstile,recaptcha,hcaptcha
 CAPTCHA_TIMEOUT_SECONDS=5
@@ -71,8 +70,8 @@ O Compose transforma as chaves secretas em arquivos Docker Secrets. Se só o Tur
 site continua funcionando como antes. Para ativar fallback, adicione as chaves dos providers desejados e coloque
 a ordem em `CAPTCHA_PROVIDERS`.
 
-No ambiente de desenvolvimento, use `COMPOSE_PROJECT_NAME=diasekovaltchuk-adv-dev` para manter os containers
-separados da produção. O Docker Compose lê essa variável do `.env` automaticamente.
+Os arquivos Compose definem os nomes dos projetos: `diasekovaltchuk-adv` em produção e
+`diasekovaltchuk-adv-dev` em desenvolvimento. O `.env` não deve sobrescrever esses nomes.
 
 ## Validação do e-mail de contato
 
@@ -109,19 +108,19 @@ poetry run python backend/main.py
 ## Desenvolvimento (profile: dev)
 
 ```bash
-docker compose --profile dev build
-docker compose --profile dev up -d
-docker compose --profile dev logs -f
-docker compose --profile dev down
+docker compose -f docker-compose.yml build
+docker compose -f docker-compose.yml up -d
+docker compose -f docker-compose.yml logs -f
+docker compose -f docker-compose.yml down
 ```
 
 ## Produção (profile: prod)
 
 ```bash
-docker compose --profile prod build
-docker compose --profile prod up -d
-docker compose --profile prod logs -f
-docker compose --profile prod down
+docker compose -f docker-compose.prod.yml build
+docker compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.prod.yml logs -f
+docker compose -f docker-compose.prod.yml down
 ```
 
 ## Testes

@@ -1,4 +1,4 @@
-name: diasekovaltchuk-adv-dev
+name: diasekovaltchuk-adv
 
 x-secret-environment: &secret-environment
   FLASK_SECRET_KEY_FILE: /run/secrets/flask_secret_key
@@ -22,7 +22,7 @@ x-app-secrets: &app-secrets
 x-app-runtime: &app-runtime
   labels:
     infra.project: diasekovaltchuk-adv
-    infra.environment: development
+    infra.environment: production
     infra.version: ${IMAGE_TAG:-local}
   init: true
   stop_grace_period: 30s
@@ -51,16 +51,17 @@ x-app-runtime: &app-runtime
 
 services:
   app:
-    image: diasekovaltchuk-adv/app:${IMAGE_TAG:-local}-dev
+    image: diasekovaltchuk-adv/app:${IMAGE_TAG:-local}
     <<: *app-runtime
     restart: unless-stopped
     build: .
     working_dir: /app
     ports:
-      - "3003:3003"
+      - "3002:3002"
     environment:
       <<: *secret-environment
-      PORT: 3003
+      PORT: 3002
+      TZ: America/Sao_Paulo
     env_file:
       - .env
     secrets: *app-secrets
