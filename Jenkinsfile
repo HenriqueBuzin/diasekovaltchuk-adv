@@ -35,9 +35,6 @@ pipeline {
                         echo "Validando configuração e Docker Secrets..."
                         docker compose --profile prod config --quiet
 
-                        echo "Validando configuração e Docker Secrets..."
-                        docker compose --profile prod config --quiet
-
                         echo "🛑 Derrubando containers antigos..."
                         docker compose --profile prod down || true
 
@@ -60,9 +57,6 @@ pipeline {
                         echo "🔗 Aplicando .env..."
                         test -f ${envDir}/${project}-dev.env
                         ln -sfn ${envDir}/${project}-dev.env .env
-
-                        echo "Validando configuração e Docker Secrets..."
-                        docker compose --profile dev config --quiet
 
                         echo "Validando configuração e Docker Secrets..."
                         docker compose --profile dev config --quiet
