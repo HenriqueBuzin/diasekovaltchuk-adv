@@ -51,7 +51,12 @@ pipeline {
 
         stage('Container') {
             steps {
-                sh 'docker build --tag diasekovaltchuk-adv/app:$(git rev-parse --short=12 HEAD) .'
+                script {
+                    def branch = env.BRANCH_NAME ?: env.GIT_BRANCH ?: ''
+                    branch = branch.replaceFirst(/^origin\//, '')
+                    def suffix = branch == 'dev' ? '-dev' : ''
+                    sh "docker build --tag diasekovaltchuk-adv/app:\$(git rev-parse --short=12 HEAD)${suffix} ."
+                }
             }
         }
 
@@ -79,9 +84,9 @@ pipeline {
                         ln -sfn "\$env_file" .env
                         export COMPOSE_PROJECT_NAME='${project}${suffix}'
                         export IMAGE_TAG=\$(git rev-parse --short=12 HEAD)
-                        docker image inspect "${project}/app:\$IMAGE_TAG" >/dev/null
-                        docker compose ${composeFiles} down || true
-                        docker compose ${composeFiles} up -d --wait --wait-timeout 120
+                        docker image inspect "${project}/app:\$IMAGE_TAG${suffix}" >/dev/null
+                        docker compose ${composeFiles} down --remove-orphans || true
+                        docker compose ${composeFiles} up -d --no-build --pull never --remove-orphans --wait --wait-timeout 120
                         docker compose ${composeFiles} ps
                     """
                 }
