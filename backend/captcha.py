@@ -5,6 +5,7 @@ from typing import Mapping, Protocol
 
 import requests
 from messages import message
+from secret_loader import require_secret
 
 VERIFY_URLS = {
     "turnstile": "https://challenges.cloudflare.com/turnstile/v0/siteverify",
@@ -126,7 +127,7 @@ def load_provider_config(environ: Mapping[str, str], name: str) -> CaptchaProvid
 
     prefix = ENV_PREFIXES[name]
     site_key = require_config(environ, f"{prefix}_SITE_KEY")
-    secret_key = require_config(environ, f"{prefix}_SECRET_KEY")
+    secret_key = require_secret(f"{prefix}_SECRET_KEY", environ)
     verify_url = environ.get(f"{prefix}_VERIFY_URL", VERIFY_URLS[name])
     return CaptchaProviderConfig(name=name, site_key=site_key, secret_key=secret_key, verify_url=verify_url)
 
