@@ -31,7 +31,6 @@ x-app-runtime: &app-runtime
   cap_drop:
     - ALL
   pids_limit: 256
-  read_only: true
   tmpfs:
     - /tmp:rw,noexec,nosuid,nodev,mode=1777,size=64m
   ulimits:
