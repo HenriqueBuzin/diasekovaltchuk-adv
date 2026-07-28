@@ -27,7 +27,7 @@ jobs:
         with:
           python-version: "3.14.6"
 
-      - name: Install Poetry
+      - name: Install
         run: pipx install poetry==2.4.1
 
       - name: Install Python dependencies
@@ -45,10 +45,10 @@ jobs:
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
-      - name: Run complete test suite
+      - name: Verify
         run: poetry run python scripts/run_tests.py
 
-      - name: Validate Compose
+      - name: Compose
         env:
           FLASK_SECRET_KEY: ci-flask-key
           MAIL_PASSWORD: ci-mail-password
@@ -60,7 +60,7 @@ jobs:
           docker compose -f docker-compose.yml config --quiet
           docker compose -f docker-compose-prod.yml config --quiet
 
-      - name: Build container
+      - name: Container
         run: docker build --tag diasekovaltchuk-adv:ci .
 
       - name: Generate SBOM
@@ -75,3 +75,6 @@ jobs:
           image: diasekovaltchuk-adv:ci
           fail-build: true
           severity-cutoff: high
+
+      - name: Deploy
+        run: echo "Deploy autorizado apenas pelo Jenkins em main/dev."
