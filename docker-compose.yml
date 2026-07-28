@@ -1,5 +1,9 @@
 x-secret-environment: &secret-environment
-  APP_SECRETS_FILE: /run/secrets/app_secrets
+  FLASK_SECRET_KEY_FILE: /run/secrets/flask_secret_key
+  MAIL_PASSWORD_FILE: /run/secrets/mail_password
+  TURNSTILE_SECRET_KEY_FILE: /run/secrets/turnstile_secret_key
+  RECAPTCHA_SECRET_KEY_FILE: /run/secrets/recaptcha_secret_key
+  HCAPTCHA_SECRET_KEY_FILE: /run/secrets/hcaptcha_secret_key
   FLASK_SECRET_KEY: ""
   MAIL_PASSWORD: ""
   TURNSTILE_SECRET_KEY: ""
@@ -7,7 +11,11 @@ x-secret-environment: &secret-environment
   HCAPTCHA_SECRET_KEY: ""
 
 x-app-secrets: &app-secrets
-  - app_secrets
+  - flask_secret_key
+  - mail_password
+  - turnstile_secret_key
+  - recaptcha_secret_key
+  - hcaptcha_secret_key
 
 services:
   diasekovaltchuk:
@@ -43,8 +51,16 @@ services:
       - proxy-network
 
 secrets:
-  app_secrets:
-    file: ${APP_SECRETS_SOURCE:?Defina APP_SECRETS_SOURCE no .env}
+  flask_secret_key:
+    environment: FLASK_SECRET_KEY
+  mail_password:
+    environment: MAIL_PASSWORD
+  turnstile_secret_key:
+    environment: TURNSTILE_SECRET_KEY
+  recaptcha_secret_key:
+    environment: RECAPTCHA_SECRET_KEY
+  hcaptcha_secret_key:
+    environment: HCAPTCHA_SECRET_KEY
 
 networks:
   proxy-network:
