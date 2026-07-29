@@ -65,7 +65,9 @@ services:
       - .env
     secrets: *app-secrets
     networks:
-      - proxy-network
+      proxy-network:
+        aliases:
+          - diasekovaltchuk-adv-dev
 
 secrets:
   flask_secret_key:
