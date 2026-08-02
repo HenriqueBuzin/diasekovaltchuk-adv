@@ -22,7 +22,7 @@ Mail e não pode expor credenciais.
 ## Arquitetura e versões
 
 - Python 3.14.6, Poetry 2.4.1, Flask 3.1.3.
-- Node.js 24.18.0 LTS, npm 11.16.0, React/React DOM 19.2.8.
+- Node.js 24.18.1 LTS, npm 11.16.0, React/React DOM 19.2.8.
 - TypeScript 6.0.3 estrito, Vite 8.1.5, Vitest 4.1.10 e Playwright 1.62.0.
 - Black 26.5.1, isort 8.0.1 e Flake8 7.3.0.
 

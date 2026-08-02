@@ -128,7 +128,7 @@ docker compose -f docker-compose-prod.yml down
 Versões de desenvolvimento suportadas:
 
 - Python 3.14.6;
-- Node.js 24.18.0 LTS;
+- Node.js 24.18.1 LTS;
 - Poetry 2.4.1;
 - TypeScript 6.0.3.
 
@@ -139,7 +139,7 @@ Crie e ative um ambiente virtual dedicado. Neste computador ele fica em `C:\User
 C:\Users\henri\Documents\Projects\venv\diasekovaltchukadv\Scripts\Activate.ps1
 python -m pip install poetry==2.4.1
 poetry install
-nvm use 24.18.0
+nvm use 24.18.1
 ```
 
 Instale também as dependências e o navegador dos testes frontend:
