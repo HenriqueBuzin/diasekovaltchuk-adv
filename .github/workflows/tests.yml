@@ -28,7 +28,7 @@ jobs:
           php-version: "8.5.9"
           extensions: dom, intl, mbstring, zip
           coverage: xdebug
-          tools: composer:2.10.1
+          tools: composer:2.10.2
 
       - name: Install backend dependencies
         run: composer --working-dir=backend install --no-interaction --prefer-dist --no-scripts

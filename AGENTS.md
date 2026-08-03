@@ -14,7 +14,7 @@ confirma o domínio, não a caixa postal.
 
 ## Arquitetura e versões
 
-- PHP 8.5.9, Composer 2.10.1 e Laravel 13.23.0.
+- PHP 8.5.9, Composer 2.10.2 e Laravel 13.23.0.
 - Node.js 24.18.1 LTS, npm 12.0.2, React 19.2.8 e TypeScript 6.0.3 estrito.
 - Pint 1.30.3, Larastan 3.10.0/PHPStan 2.2.7 e PHPUnit 13.2.6.
 - Prettier 3.9.6, ESLint 10.8.0, Vitest 4.1.10 e Playwright 1.62.0.

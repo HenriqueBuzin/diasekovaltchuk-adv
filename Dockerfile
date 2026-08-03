@@ -28,15 +28,18 @@ RUN apt-get update \
     && docker-php-ext-install intl zip \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=composer:2.10.1 /usr/bin/composer /usr/local/bin/composer
 WORKDIR /app/backend
 
-FROM php-base AS backend-dependencies
+FROM php-base AS php-composer
+
+COPY --from=composer:2.10.2 /usr/bin/composer /usr/local/bin/composer
+
+FROM php-composer AS backend-dependencies
 
 COPY backend/composer.json backend/composer.lock ./
 RUN composer install --no-dev --no-interaction --no-scripts --prefer-dist --optimize-autoloader
 
-FROM php-base AS backend-test-environment
+FROM php-composer AS backend-test-environment
 
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends autoconf g++ make \
