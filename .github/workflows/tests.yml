@@ -52,15 +52,22 @@ jobs:
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
-      - name: Verify backend
+      - name: Audit backend
+        run: composer --working-dir=backend audit
+
+      - name: Format backend
+        run: composer --working-dir=backend format:check
+
+      - name: Analyse backend
+        run: composer --working-dir=backend analyse
+
+      - name: Test backend with coverage
         env:
           XDEBUG_MODE: coverage
-        run: |
-          composer --working-dir=backend audit
-          composer --working-dir=backend format:check
-          composer --working-dir=backend analyse
-          php -d memory_limit=1G backend/vendor/bin/phpunit --coverage-clover=backend/coverage.xml
-          php backend/scripts/check-coverage.php backend/coverage.xml
+        run: php -d memory_limit=1G backend/vendor/bin/phpunit --coverage-clover=backend/coverage.xml
+
+      - name: Enforce backend coverage
+        run: php backend/scripts/check-coverage.php backend/coverage.xml
 
       - name: Verify frontend
         run: |
