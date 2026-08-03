@@ -31,13 +31,12 @@ jobs:
           tools: composer:2.10.1
 
       - name: Install backend dependencies
-        run: |
-          docker build --target backend-test-environment --tag diasekovaltchuk-adv:backend-test .
-          container_id="$(docker create diasekovaltchuk-adv:backend-test)"
-          trap 'docker rm -f "$container_id" >/dev/null 2>&1 || true' EXIT
-          docker cp "$container_id:/app/backend/vendor" backend/vendor
-          mkdir -p backend/bootstrap/cache
-          docker cp "$container_id:/app/backend/bootstrap/cache/." backend/bootstrap/cache/
+        run: composer --working-dir=backend install --no-interaction --prefer-dist --no-scripts
+
+      - name: Discover backend packages
+        env:
+          APP_KEY: base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+        run: php backend/artisan package:discover --ansi
 
       - name: Set up Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
