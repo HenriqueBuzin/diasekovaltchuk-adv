@@ -22,7 +22,14 @@ run(['composer', '--working-dir=backend', 'analyse']);
 
 if (extension_loaded('xdebug') || extension_loaded('pcov')) {
     putenv('XDEBUG_MODE=coverage');
-    run(['php', '-d', 'memory_limit=1G', 'backend/vendor/bin/phpunit', '--coverage-clover=backend/coverage.xml']);
+    run([
+        'php',
+        '-d',
+        'memory_limit=1G',
+        'backend/vendor/bin/phpunit',
+        '--configuration=backend/phpunit.xml',
+        '--coverage-clover=backend/coverage.xml',
+    ]);
     run(['php', 'backend/scripts/check-coverage.php', 'backend/coverage.xml']);
 } else {
     run(['docker', 'build', '--target', 'backend-quality', '--tag', 'diasekovaltchuk-adv:backend-quality', '.']);
