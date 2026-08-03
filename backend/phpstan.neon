@@ -1,0 +1,9 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    paths:
+        - app
+    level: 10
+    treatPhpDocTypesAsCertain: true
+    tmpDir: storage/framework/cache/phpstan

@@ -1,7 +1,3 @@
-param(
-    [string]$Poetry = "poetry"
-)
-
 $ErrorActionPreference = "Stop"
-& $Poetry run python scripts/run_tests.py
+php scripts/run_tests.php
 exit $LASTEXITCODE

@@ -1,4 +1,4 @@
 #!/usr/bin/env sh
 set -eu
 
-poetry run python scripts/run_tests.py
+php scripts/run_tests.php

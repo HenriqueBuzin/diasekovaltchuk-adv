@@ -2,6 +2,14 @@
 .env
 .venv
 .coverage
+backend/.phpunit.cache
+backend/coverage.xml
+backend/bootstrap/cache/*
+backend/storage/framework/cache/*
+backend/storage/framework/sessions/*
+backend/storage/framework/views/*
+backend/storage/logs/*
+backend/vendor
 coverage
 frontend/dist
 htmlcov

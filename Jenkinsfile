@@ -15,7 +15,11 @@ pipeline {
 
         stage('Verify') {
             steps {
-                sh 'docker build --tag diasekovaltchuk-adv:verify .'
+                sh '''
+                    set -eu
+                    docker build --target backend-quality --tag diasekovaltchuk-adv:backend-verify .
+                    docker build --target frontend-quality --tag diasekovaltchuk-adv:frontend-verify .
+                '''
             }
         }
 
