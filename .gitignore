@@ -3,6 +3,16 @@
 __pycache__/
 *.py[cod]
 .coverage
+backend/.phpunit.cache/
+backend/coverage.xml
+backend/coverage-lines.xml
+backend/coverage-report/
+backend/bootstrap/cache/*
+backend/storage/framework/cache/*
+backend/storage/framework/sessions/*
+backend/storage/framework/views/*
+backend/storage/logs/*.log
+backend/vendor/
 htmlcov/
 coverage/
 node_modules/

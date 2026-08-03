@@ -1,11 +1,12 @@
 name: diasekovaltchuk-adv-dev
 
 x-secret-environment: &secret-environment
-  FLASK_SECRET_KEY_FILE: /run/secrets/flask_secret_key
+  APP_KEY_FILE: /run/secrets/app_key
   MAIL_PASSWORD_FILE: /run/secrets/mail_password
   TURNSTILE_SECRET_KEY_FILE: /run/secrets/turnstile_secret_key
   RECAPTCHA_SECRET_KEY_FILE: /run/secrets/recaptcha_secret_key
   HCAPTCHA_SECRET_KEY_FILE: /run/secrets/hcaptcha_secret_key
+  APP_KEY: ""
   FLASK_SECRET_KEY: ""
   MAIL_PASSWORD: ""
   TURNSTILE_SECRET_KEY: ""
@@ -13,7 +14,7 @@ x-secret-environment: &secret-environment
   HCAPTCHA_SECRET_KEY: ""
 
 x-app-secrets: &app-secrets
-  - flask_secret_key
+  - app_key
   - mail_password
   - turnstile_secret_key
   - recaptcha_secret_key
@@ -38,7 +39,7 @@ x-app-runtime: &app-runtime
       soft: 0
       hard: 0
   healthcheck:
-    test: ["CMD", "python3", "-c", "import os,urllib.request; urllib.request.urlopen('http://127.0.0.1:'+os.environ['PORT']+'/', timeout=3)"]
+    test: ["CMD", "php", "-r", "exit(@file_get_contents('http://127.0.0.1:'.getenv('PORT').'/api/site-config') === false ? 1 : 0);"]
     interval: 10s
     timeout: 5s
     retries: 12
@@ -54,7 +55,7 @@ services:
     <<: *app-runtime
     restart: unless-stopped
     build: .
-    working_dir: /app
+    working_dir: /app/backend
     ports:
       - "3003:3003"
     environment:
@@ -70,7 +71,7 @@ services:
           - diasekovaltchuk-adv-dev
 
 secrets:
-  flask_secret_key:
+  app_key:
     environment: FLASK_SECRET_KEY
   mail_password:
     environment: MAIL_PASSWORD

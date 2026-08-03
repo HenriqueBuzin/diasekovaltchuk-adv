@@ -22,16 +22,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Set up Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - name: Set up PHP
+        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # 2.37.0
         with:
-          python-version: "3.14.6"
+          php-version: "8.5.9"
+          extensions: dom, intl, mbstring, zip
+          coverage: xdebug
+          tools: composer:2.10.1
 
-      - name: Install
-        run: pipx install poetry==2.4.1
-
-      - name: Install Python dependencies
-        run: poetry install --no-interaction
+      - name: Install backend dependencies
+        run: composer --working-dir=backend install --no-interaction --prefer-dist
 
       - name: Set up Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -40,13 +40,17 @@ jobs:
           cache: npm
 
       - name: Install frontend dependencies
-        run: npm ci
+        run: |
+          npm install --global npm@12.0.2
+          npm ci
 
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
       - name: Verify
-        run: poetry run python scripts/run_tests.py
+        env:
+          XDEBUG_MODE: coverage
+        run: php scripts/run_tests.php
 
       - name: Compose
         env:

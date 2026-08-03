@@ -1,191 +1,89 @@
-# diasekovaltchukadv
+# Dias Kovaltchuk Advogadas Associadas
 
-Site institucional com backend Flask e frontend React 19 + TypeScript + Vite.
+Site institucional com backend Laravel 13 e frontend React 19 + TypeScript + Vite.
 
 ## Arquitetura
 
-- `backend/`: API Flask, validação, CAPTCHA desacoplado por provider e envio de e-mail;
-- `backend/routes/`: blueprints de API, frontend estático e handlers de erro;
-- `backend/services/`: serviços de CAPTCHA, envio de contato e verificação auxiliar;
-- `frontend/`: aplicação React com TypeScript estrito, estilos, assets e testes de componentes;
-- `frontend/src/content/`: textos e listas institucionais usados pelas seções;
-- `frontend/src/components/sections/`: seções visuais da página;
-- `tests/`: testes de API/backend e E2E;
-- `Dockerfile`: build multi-stage que compila o React e entrega o resultado pelo Flask.
+- `backend/`: Laravel, API, validação, adapters de CAPTCHA/DNS e envio SMTP;
+- `frontend/`: React com TypeScript estrito, conteúdo, estilos e testes;
+- `tests/e2e/`: cenários Playwright desktop e mobile;
+- `Dockerfile`: build multi-stage do React, dependências Composer e runtime PHP 8.5.
 
-Em produção existe uma única porta HTTP. O Flask responde aos endpoints `/api/*` e serve o bundle React nas demais rotas.
+Laravel responde `/api/*`, `/docs`, `/openapi.json` e entrega o bundle React nas demais rotas.
 
 ## Docker Secrets
 
-O Jenkins mantém o mesmo fluxo de link simbólico para o arquivo externo:
+O Jenkins cria o link para o env externo:
 
 ```bash
 ln -sfn /root/projects/envs/diasekovaltchuk-adv.env .env
 ```
 
-O Docker Compose usa as variáveis sensíveis desse `.env` como fonte e monta cada uma como arquivo dentro do
-container:
+O Compose monta os valores como arquivos:
 
 ```text
-FLASK_SECRET_KEY     -> /run/secrets/flask_secret_key
+FLASK_SECRET_KEY     -> /run/secrets/app_key -> APP_KEY_FILE
 MAIL_PASSWORD        -> /run/secrets/mail_password
 TURNSTILE_SECRET_KEY -> /run/secrets/turnstile_secret_key
 RECAPTCHA_SECRET_KEY -> /run/secrets/recaptcha_secret_key
 HCAPTCHA_SECRET_KEY  -> /run/secrets/hcaptcha_secret_key
 ```
 
-Os valores permanecem no arquivo externo do servidor, mas são sobrescritos com vazio no ambiente do container.
-O backend recebe apenas os caminhos `*_FILE`, evitando que os valores apareçam no `docker inspect`.
+`FLASK_SECRET_KEY` foi mantido no env externo por compatibilidade. Laravel normaliza esse segredo para uma chave
+AES-256 sem expor o valor no ambiente do container. Proteja os envs externos com `chmod 600`.
 
-Proteja os arquivos externos com `chmod 600`. Para execução sem Docker, as variáveis diretas continuam aceitas
-como compatibilidade local.
-
-## CAPTCHA
-
-O CAPTCHA segue Strategy + Adapter no backend e fallback por provider no frontend. O token de um provider não é validado em outro, então o React informa qual desafio gerou o token:
-
-```json
-{
-  "captchaProvider": "turnstile",
-  "captchaToken": "..."
-}
-```
-
-Configuração no `.env`:
+## CAPTCHA e e-mail
 
 ```env
 CAPTCHA_ENABLED=true
 CAPTCHA_PROVIDERS=turnstile,recaptcha,hcaptcha
 CAPTCHA_TIMEOUT_SECONDS=5
-
-TURNSTILE_SITE_KEY=
-TURNSTILE_SECRET_KEY=
-RECAPTCHA_SITE_KEY=
-RECAPTCHA_SECRET_KEY=
-HCAPTCHA_SITE_KEY=
-HCAPTCHA_SECRET_KEY=
-```
-
-O Compose transforma as chaves secretas em arquivos Docker Secrets. Se só o Turnstile estiver configurado, o
-site continua funcionando como antes. Para ativar fallback, adicione as chaves dos providers desejados e coloque
-a ordem em `CAPTCHA_PROVIDERS`.
-
-Os arquivos Compose definem os nomes dos projetos: `diasekovaltchuk-adv` em produção e
-`diasekovaltchuk-adv-dev` em desenvolvimento. O `.env` não deve sobrescrever esses nomes.
-
-## Validação do e-mail de contato
-
-Antes de enviar o formulário, o backend consulta o registro MX do domínio informado. Assim, endereços com
-domínios inventados são recusados sem bloquear provedores válidos como Gmail, Outlook ou serviços corporativos.
-
-```env
 EMAIL_DNS_VALIDATION_ENABLED=true
 ```
 
-A consulta confirma que o domínio recebe e-mail; por limitação do protocolo, ela não confirma a existência da
-caixa postal individual.
+Providers aceitos: `turnstile`, `recaptcha` e `hcaptcha`. Cada token é validado somente no provider que o gerou.
+A consulta MX recusa domínios sem servidor de e-mail, mas não confirma a existência da caixa postal individual.
 
 ## Desenvolvimento local
 
-Com o backend ativo na porta `5000`, o Vite encaminha automaticamente as chamadas `/api`:
+Requisitos: PHP 8.5, Composer 2.10, Node.js 24 LTS e npm 12.
 
 ```powershell
+composer --working-dir=backend install
+npm ci
+npx playwright install chromium
+
 # terminal 1
 $env:PORT = "5000"
-poetry run python backend/main.py
+php backend/artisan serve --host=127.0.0.1 --port=5000
 
 # terminal 2
 npm run dev
 ```
 
-O frontend fica disponível em `http://127.0.0.1:5173`. Para testar a forma usada em produção:
+O Vite fica em `http://127.0.0.1:5173` e encaminha `/api` para Laravel.
 
-```powershell
-npm run build
-poetry run python backend/main.py
-```
-
-## Desenvolvimento
+## Qualidade e testes
 
 ```bash
-docker compose -f docker-compose.yml build
-docker compose -f docker-compose.yml up -d
-docker compose -f docker-compose.yml logs -f
-docker compose -f docker-compose.yml down
+composer --working-dir=backend format
+composer --working-dir=backend analyse
+php backend/artisan test
+npm test
 ```
 
-## Produção
+`npm test` executa a suíte completa: Composer audit, Pint, Larastan nível 10, PHPUnit com 100% de classes, métodos e
+linhas, npm audit, Prettier, ESLint, TypeScript, Vitest com 100% de statements, branches, funções e linhas, além do
+Playwright. Sem Xdebug/PCOV local, a cobertura
+Laravel roda automaticamente no target Docker `backend-quality`.
+
+O hook Husky é instalado por `npm install` e executa a mesma suíte antes de cada commit.
+
+## Containers
 
 ```bash
-docker compose -f docker-compose-prod.yml build
-docker compose -f docker-compose-prod.yml up -d
-docker compose -f docker-compose-prod.yml logs -f
-docker compose -f docker-compose-prod.yml down
+docker compose -f docker-compose.yml up -d --build
+docker compose -f docker-compose-prod.yml up -d --build
 ```
 
-## Testes
-
-Versões de desenvolvimento suportadas:
-
-- Python 3.14.6;
-- Node.js 24.18.1 LTS;
-- Poetry 2.4.1;
-- TypeScript 6.0.3.
-
-Crie e ative um ambiente virtual dedicado. Neste computador ele fica em `C:\Users\henri\Documents\Projects\venv\diasekovaltchukadv`:
-
-```powershell
-& "$env:LOCALAPPDATA\Programs\Python\Python314\python.exe" -m venv C:\Users\henri\Documents\Projects\venv\diasekovaltchukadv
-C:\Users\henri\Documents\Projects\venv\diasekovaltchukadv\Scripts\Activate.ps1
-python -m pip install poetry==2.4.1
-poetry install
-nvm use 24.18.1
-```
-
-Instale também as dependências e o navegador dos testes frontend:
-
-```bash
-npm ci
-npx playwright install chromium
-```
-
-No Windows, execute toda a suíte com:
-
-```powershell
-.\scripts\test.ps1
-```
-
-O script do Windows usa o Google Chrome instalado. No Linux/Jenkins, o Playwright usa o Chromium instalado pelo comando acima.
-
-No Linux/Jenkins:
-
-```bash
-sh scripts/test.sh
-```
-
-A suíte contém:
-
-- testes unitários das regras de validação, ambiente, telefone, e-mail e CAPTCHA;
-- testes de API para `/api/site-config` e `/api/contact`;
-- testes funcionais dos componentes React, formulário e navegação;
-- testes de integração entre React, API Flask, CAPTCHA e e-mail simulado;
-- testes de regressão para WhatsApp, conversão, acessibilidade e layout mobile;
-- smoke tests da página e assets principais;
-- testes E2E em Chrome desktop e viewport de iPhone SE;
-- cobertura obrigatória de 100% de linhas, funções, statements e branches no backend e frontend.
-
-### Validar automaticamente antes do commit
-
-Instale o hook uma vez em cada clone do repositório. No Windows, o instalador também configura o GitHub Desktop para encontrar o Poetry no venv dedicado:
-
-```powershell
-.\scripts\install_hooks.ps1
-```
-
-A partir disso, `git commit` executa toda a suíte e bloqueia o commit quando qualquer teste, auditoria ou meta de cobertura falhar. Para disparar a mesma validação manualmente:
-
-```bash
-poetry run pre-commit run --all-files
-```
-
-Os hooks executam `poetry run black`, `poetry run isort` e `poetry run flake8` no backend; Prettier, ESLint e `tsc --noEmit` no frontend; e por fim a suíte completa. O workflow `.github/workflows/tests.yml` repete a validação no GitHub em todo push e pull request. O hook local atua antes do commit; o GitHub Actions protege o repositório mesmo quando alguém ainda não instalou o hook.
+Desenvolvimento usa a porta 3003 e produção usa a porta 3002.

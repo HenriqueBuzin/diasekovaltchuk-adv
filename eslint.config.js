@@ -7,7 +7,14 @@ import tseslint from 'typescript-eslint';
 
 export default [
   {
-    ignores: ['coverage/**', 'frontend/dist/**', 'node_modules/**', 'playwright-report/**', 'test-results/**']
+    ignores: [
+      'backend/**',
+      'coverage/**',
+      'frontend/dist/**',
+      'node_modules/**',
+      'playwright-report/**',
+      'test-results/**'
+    ]
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
