@@ -6,7 +6,7 @@ RUN npm ci
 COPY frontend/ ./frontend/
 RUN npm run build
 
-FROM python:3.14.6-slim-bookworm
+FROM python:3.14.6-slim-trixie
 
 ENV POETRY_VERSION=2.4.1 \
     POETRY_VIRTUALENVS_CREATE=false \
