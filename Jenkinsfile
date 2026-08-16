@@ -35,10 +35,19 @@ pipeline {
                     withEnv(["PIPELINE_BRANCH=${branch}"]) {
                         sh '''
                             set -eu
-                            suffix=""
-                            [ "$PIPELINE_BRANCH" = "dev" ] && suffix="-dev"
-                            env_file="/root/projects/envs/diasekovaltchuk-adv${suffix}.env"
+                            suffix="-prod"
+                            stage_dir="prod"
+                            if [ "$PIPELINE_BRANCH" = "dev" ]; then
+                              suffix="-dev"
+                              stage_dir="dev"
+                            fi
+                            config_dir="/root/projects/envs/diasekovaltchuk-adv/${stage_dir}"
+                            env_file="${config_dir}/diasekovaltchuk-adv${suffix}.env"
                             test -f "$env_file"
+                            test -d "${config_dir}/secrets"
+                            for secret in app_key mail_password turnstile_secret_key recaptcha_secret_key hcaptcha_secret_key; do
+                              test -f "${config_dir}/secrets/${secret}"
+                            done
                             ln -sfn "$env_file" .env
                             if [ "$PIPELINE_BRANCH" = "main" ]; then
                               export COMPOSE_PROJECT_NAME=diasekovaltchuk-adv
@@ -77,14 +86,21 @@ pipeline {
                     }
 
                     def suffix = branch == 'main' ? '' : '-dev'
+                    def stageDir = branch == 'main' ? 'prod' : 'dev'
+                    def envSuffix = branch == 'main' ? '-prod' : '-dev'
                     def composeFiles = branch == 'main'
                         ? '-f docker-compose-prod.yml'
                         : '-f docker-compose.yml'
 
                     sh """
                         set -eu
-                        env_file='/root/projects/envs/${project}${suffix}.env'
+                        config_dir='/root/projects/envs/${project}/${stageDir}'
+                        env_file="\$config_dir/${project}${envSuffix}.env"
                         test -f "\$env_file"
+                        test -d "\$config_dir/secrets"
+                        for secret in app_key mail_password turnstile_secret_key recaptcha_secret_key hcaptcha_secret_key; do
+                          test -f "\$config_dir/secrets/\$secret"
+                        done
                         ln -sfn "\$env_file" .env
                         export COMPOSE_PROJECT_NAME='${project}${suffix}'
                         export IMAGE_TAG=\$(git rev-parse --short=12 HEAD)

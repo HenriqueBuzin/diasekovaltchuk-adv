@@ -72,15 +72,15 @@ services:
 
 secrets:
   app_key:
-    environment: FLASK_SECRET_KEY
+    file: ${SECRETS_DIR:?SECRETS_DIR is required}/app_key
   mail_password:
-    environment: MAIL_PASSWORD
+    file: ${SECRETS_DIR:?SECRETS_DIR is required}/mail_password
   turnstile_secret_key:
-    environment: TURNSTILE_SECRET_KEY
+    file: ${SECRETS_DIR:?SECRETS_DIR is required}/turnstile_secret_key
   recaptcha_secret_key:
-    environment: RECAPTCHA_SECRET_KEY
+    file: ${SECRETS_DIR:?SECRETS_DIR is required}/recaptcha_secret_key
   hcaptcha_secret_key:
-    environment: HCAPTCHA_SECRET_KEY
+    file: ${SECRETS_DIR:?SECRETS_DIR is required}/hcaptcha_secret_key
 
 networks:
   proxy-network:

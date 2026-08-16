@@ -13,24 +13,38 @@ Laravel responde `/api/*`, `/docs`, `/openapi.json` e entrega o bundle React nas
 
 ## Docker Secrets
 
-O Jenkins cria o link para o env externo:
-
-```bash
-ln -sfn /root/projects/envs/diasekovaltchuk-adv.env .env
-```
-
-O Compose monta os valores como arquivos:
+Cada ambiente possui configuração comum e segredos separados:
 
 ```text
-FLASK_SECRET_KEY     -> /run/secrets/app_key -> APP_KEY_FILE
-MAIL_PASSWORD        -> /run/secrets/mail_password
-TURNSTILE_SECRET_KEY -> /run/secrets/turnstile_secret_key
-RECAPTCHA_SECRET_KEY -> /run/secrets/recaptcha_secret_key
-HCAPTCHA_SECRET_KEY  -> /run/secrets/hcaptcha_secret_key
+/root/projects/envs/diasekovaltchuk-adv/
+├── dev/
+│   ├── diasekovaltchuk-adv-dev.env
+│   └── secrets/
+└── prod/
+    ├── diasekovaltchuk-adv-prod.env
+    └── secrets/
 ```
 
-`FLASK_SECRET_KEY` foi mantido no env externo por compatibilidade. Laravel normaliza esse segredo para uma chave
-AES-256 sem expor o valor no ambiente do container. Proteja os envs externos com `chmod 600`.
+O Jenkins aponta `.env` para o arquivo do ambiente. O Compose lê cada segredo diretamente da pasta configurada em
+`SECRETS_DIR` e o monta somente em `/run/secrets`:
+
+```text
+secrets/app_key                 -> /run/secrets/app_key -> APP_KEY_FILE
+secrets/mail_password           -> /run/secrets/mail_password
+secrets/turnstile_secret_key    -> /run/secrets/turnstile_secret_key
+secrets/recaptcha_secret_key    -> /run/secrets/recaptcha_secret_key
+secrets/hcaptcha_secret_key     -> /run/secrets/hcaptcha_secret_key
+```
+
+Para migrar os dois `.env` antigos sem apagá-los:
+
+```bash
+cd /root/projects/diasekovaltchuk-adv-dev
+sh scripts/migrate-deployment-secrets.sh /root/projects/envs
+```
+
+O script cria `dev`, `prod` e seus `secrets`, remove os valores sensíveis apenas das novas cópias e aplica permissões
+`700/600`. Os arquivos legados permanecem como rollback até os dois deploys serem validados.
 
 ## CAPTCHA e e-mail
 
@@ -82,6 +96,7 @@ O hook Husky é instalado por `npm install` e executa a mesma suíte antes de ca
 ## Containers
 
 ```bash
+export SECRETS_DIR="$PWD/.local-secrets"
 docker compose -f docker-compose.yml up -d --build
 docker compose -f docker-compose-prod.yml up -d --build
 ```

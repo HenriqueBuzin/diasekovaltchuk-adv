@@ -81,14 +81,15 @@ jobs:
         run: npm run test:e2e
 
       - name: Compose
-        env:
-          FLASK_SECRET_KEY: ci-flask-key
-          MAIL_PASSWORD: ci-mail-password
-          TURNSTILE_SECRET_KEY: ci-turnstile
-          RECAPTCHA_SECRET_KEY: ci-recaptcha
-          HCAPTCHA_SECRET_KEY: ci-hcaptcha
         run: |
-          install -m 600 /dev/null .env
+          install -d -m 700 .ci-secrets
+          printf '%s' 'ci-app-key' > .ci-secrets/app_key
+          printf '%s' 'ci-mail-password' > .ci-secrets/mail_password
+          printf '%s' 'ci-turnstile' > .ci-secrets/turnstile_secret_key
+          printf '%s' 'ci-recaptcha' > .ci-secrets/recaptcha_secret_key
+          printf '%s' 'ci-hcaptcha' > .ci-secrets/hcaptcha_secret_key
+          chmod 600 .ci-secrets/*
+          printf 'SECRETS_DIR=%s/.ci-secrets\n' "$PWD" > .env
           docker compose -f docker-compose.yml config --quiet
           docker compose -f docker-compose-prod.yml config --quiet
 
