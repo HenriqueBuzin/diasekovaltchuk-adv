@@ -44,7 +44,8 @@ sh scripts/migrate-deployment-secrets.sh /root/projects/envs
 ```
 
 O script cria `dev`, `prod` e seus `secrets`, remove os valores sensíveis apenas das novas cópias e aplica permissões
-`700/600`. Os arquivos legados permanecem como rollback até os dois deploys serem validados.
+`700` nas pastas, `600` no env e `640` nos secrets, com grupo `33` (`www-data`)
+para leitura pelo PHP sem root. Os arquivos legados permanecem como rollback até os dois deploys serem validados.
 
 ## CAPTCHA e e-mail
 

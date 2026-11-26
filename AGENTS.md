@@ -14,10 +14,10 @@ confirma o domínio, não a caixa postal.
 
 ## Arquitetura e versões
 
-- PHP 8.5.9, Composer 2.10.2 e Laravel 13.23.0.
+- PHP 8.5.9 e Composer 2.10.2. Laravel 13 recebe as correções de segurança fixadas no lockfile.
 - Node.js 24.18.1 LTS, npm 12.0.2, React 19.2.8 e TypeScript 6.0.3 estrito.
 - Pint 1.30.3, Larastan 3.10.0/PHPStan 2.2.7 e PHPUnit 13.2.6.
-- Prettier 3.9.6, ESLint 10.8.0, Vitest 4.1.10 e Playwright 1.62.0.
+- Prettier 3.9.6, ESLint 10.15.0, Vitest 4.1.12, Vite 8.4.0 e Playwright 1.62.1.
 
 O backend usa controllers finos, Form Requests, value objects e serviços/adapters para CAPTCHA, DNS e e-mail.
 O frontend permanece totalmente TypeScript. Dependências são resolvidas pelos lockfiles versionados.
@@ -29,6 +29,10 @@ A configuração vem do `.env` externo, ligado pelo Jenkins ao arquivo
 A pasta `secrets/` fica ao lado do env e `SECRETS_DIR` aponta para ela. Compose monta cinco
 arquivos em `/run/secrets`, sem copiar valores para o ambiente do processo. Laravel recebe
 a chave pelo `APP_KEY_FILE`. Valores diretos sensíveis são sobrescritos com vazio no ambiente do serviço.
+
+Os diretórios de secrets usam `0700`; o env usa `0600`. Arquivos de secrets usam
+`0640` e grupo `33` (`www-data`) para o runtime PHP sem root conseguir lê-los
+nos bind mounts do Compose. Não tornar segredos legíveis por todos os usuários.
 
 Não adicionar banco, Redis ou outro serviço stateful. O site não precisa deles.
 
