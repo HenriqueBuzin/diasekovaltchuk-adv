@@ -14,7 +14,7 @@ confirma o domínio, não a caixa postal.
 
 ## Arquitetura e versões
 
-- PHP 8.5.9 e Composer 2.10.2. Laravel 13 recebe as correções de segurança fixadas no lockfile.
+- PHP 8.5.13 e Composer 2.10.2. Laravel 13 recebe as correções de segurança fixadas no lockfile.
 - Node.js 24.18.1 LTS, npm 12.0.2, React 19.2.8 e TypeScript 6.0.3 estrito.
 - Pint 1.30.3, Larastan 3.10.0/PHPStan 2.2.7 e PHPUnit 13.2.6.
 - Prettier 3.9.6, ESLint 10.15.0, Vitest 4.1.12, Vite 8.4.0 e Playwright 1.62.1.
