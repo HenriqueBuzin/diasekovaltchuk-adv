@@ -105,6 +105,16 @@ pipeline {
                         export COMPOSE_PROJECT_NAME='${project}${suffix}'
                         export IMAGE_TAG=\$(git rev-parse --short=12 HEAD)
                         docker image inspect "${project}/app:\$IMAGE_TAG${suffix}" >/dev/null
+                        target='/root/projects/${project}${suffix}'
+                        mkdir -p "\$target"
+                        tar --exclude='./.git' --exclude='./.env' \
+                          --exclude='./node_modules' --exclude='./backend/vendor' \
+                          --exclude='./backend/coverage.xml' --exclude='./frontend/coverage' \
+                          --exclude='./secrets' \
+                          -cf - . | tar -C "\$target" -xf -
+                        cd "\$target"
+                        ln -sfn "\$env_file" .env
+                        docker compose ${composeFiles} config --quiet
                         docker compose ${composeFiles} down --remove-orphans || true
                         docker compose ${composeFiles} up -d --no-build --pull never --remove-orphans --wait --wait-timeout 120
                         docker compose ${composeFiles} ps

@@ -36,6 +36,11 @@ secrets/recaptcha_secret_key    -> /run/secrets/recaptcha_secret_key
 secrets/hcaptcha_secret_key     -> /run/secrets/hcaptcha_secret_key
 ```
 
+O deploy entrega o checkout em `/root/projects/diasekovaltchuk-adv` (`main`) e
+`/root/projects/diasekovaltchuk-adv-dev` (`dev`), criando o link `.env` também
+nesses diretórios. O runtime usa a imagem construída pelo SHA, sem copiar secrets
+para o checkout ou para a imagem.
+
 Para migrar os dois `.env` antigos sem apagá-los:
 
 ```bash
