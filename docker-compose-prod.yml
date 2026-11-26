@@ -56,8 +56,8 @@ services:
     restart: unless-stopped
     build: .
     working_dir: /app/backend
-    ports:
-      - "3002:3002"
+    expose:
+      - "3002"
     environment:
       <<: *secret-environment
       PORT: 3002

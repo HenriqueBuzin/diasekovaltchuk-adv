@@ -24,10 +24,11 @@ O frontend permanece totalmente TypeScript. Dependências são resolvidas pelos 
 
 ## Configuração e segurança
 
-A configuração vem do `.env` externo, ligado pelo Jenkins a `/root/projects/envs/diasekovaltchuk-adv[-dev].env`.
-Compose transforma cinco variáveis em arquivos `/run/secrets`. O segredo legado `FLASK_SECRET_KEY` continua sendo
-a fonte externa da chave da aplicação para evitar migração imediata dos envs, mas Laravel recebe apenas
-`APP_KEY_FILE`. Valores diretos sensíveis são sobrescritos com vazio no ambiente do serviço.
+A configuração vem do `.env` externo, ligado pelo Jenkins ao arquivo
+`/root/projects/envs/diasekovaltchuk-adv/<prod|dev>/diasekovaltchuk-adv-<prod|dev>.env`.
+A pasta `secrets/` fica ao lado do env e `SECRETS_DIR` aponta para ela. Compose monta cinco
+arquivos em `/run/secrets`, sem copiar valores para o ambiente do processo. Laravel recebe
+a chave pelo `APP_KEY_FILE`. Valores diretos sensíveis são sobrescritos com vazio no ambiente do serviço.
 
 Não adicionar banco, Redis ou outro serviço stateful. O site não precisa deles.
 
@@ -43,8 +44,10 @@ thresholds, remover testes nem criar baseline do PHPStan.
 
 ## Infraestrutura
 
-Existem `docker-compose.yml` para desenvolvimento e `docker-compose-prod.yml` para produção. Portas externas e
-internas permanecem 3003 e 3002. O serviço canônico é `app`, na rede externa `proxy-network`, com aliases estáveis,
+Existem `docker-compose.yml` para desenvolvimento e `docker-compose-prod.yml` para produção. As portas
+3003 e 3002 são apenas internas, sem publicações no host. O NPM usa os aliases
+`diasekovaltchuk-adv-dev:3003` e `diasekovaltchuk-adv:3002`. O firewall mantém o bloqueio
+padrão das portas de aplicação; somente o proxy publica HTTP/HTTPS. O serviço canônico é `app`, na rede externa `proxy-network`, com aliases estáveis,
 healthcheck em `/api/site-config`, hardening, logs rotacionados e imagens por SHA.
 
 Jenkins mantém `Install`, `Verify`, `Compose`, `Container` e `Deploy`. `Verify` usa o target `backend-quality`;

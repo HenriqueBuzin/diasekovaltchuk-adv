@@ -101,4 +101,7 @@ docker compose -f docker-compose.yml up -d --build
 docker compose -f docker-compose-prod.yml up -d --build
 ```
 
-Desenvolvimento usa a porta 3003 e produção usa a porta 3002.
+Desenvolvimento usa a porta interna 3003 e produção usa a porta interna 3002.
+Os Composes não publicam portas no host. O Nginx Proxy Manager deve participar da
+`proxy-network` e usar `http://diasekovaltchuk-adv-dev:3003` em dev e
+`http://diasekovaltchuk-adv:3002` em produção. Não libere essas portas no nftables.
