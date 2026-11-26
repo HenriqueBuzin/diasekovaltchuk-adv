@@ -19,11 +19,12 @@ FROM frontend-dependencies AS frontend-build
 COPY frontend/ ./frontend/
 RUN npm run build
 
-FROM php:8.5.9-cli-trixie AS php-base
+FROM php:8.5.13-cli-trixie AS php-base
 
 ENV TZ=America/Sao_Paulo
 
 RUN apt-get update \
+    && apt-get upgrade --yes \
     && apt-get install --yes --no-install-recommends libicu-dev libzip-dev unzip \
     && docker-php-ext-install intl zip \
     && rm -rf /var/lib/apt/lists/*

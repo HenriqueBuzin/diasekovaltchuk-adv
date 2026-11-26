@@ -36,6 +36,11 @@ secrets/recaptcha_secret_key    -> /run/secrets/recaptcha_secret_key
 secrets/hcaptcha_secret_key     -> /run/secrets/hcaptcha_secret_key
 ```
 
+O deploy entrega o checkout em `/root/projects/diasekovaltchuk-adv` (`main`) e
+`/root/projects/diasekovaltchuk-adv-dev` (`dev`), criando o link `.env` também
+nesses diretórios. O runtime usa a imagem construída pelo SHA, sem copiar secrets
+para o checkout ou para a imagem.
+
 Para migrar os dois `.env` antigos sem apagá-los:
 
 ```bash
@@ -44,7 +49,8 @@ sh scripts/migrate-deployment-secrets.sh /root/projects/envs
 ```
 
 O script cria `dev`, `prod` e seus `secrets`, remove os valores sensíveis apenas das novas cópias e aplica permissões
-`700/600`. Os arquivos legados permanecem como rollback até os dois deploys serem validados.
+`700` nas pastas, `600` no env e `640` nos secrets, com grupo `33` (`www-data`)
+para leitura pelo PHP sem root. Os arquivos legados permanecem como rollback até os dois deploys serem validados.
 
 ## CAPTCHA e e-mail
 
@@ -101,4 +107,7 @@ docker compose -f docker-compose.yml up -d --build
 docker compose -f docker-compose-prod.yml up -d --build
 ```
 
-Desenvolvimento usa a porta 3003 e produção usa a porta 3002.
+Desenvolvimento usa a porta interna 3003 e produção usa a porta interna 3002.
+Os Composes não publicam portas no host. O Nginx Proxy Manager deve participar da
+`proxy-network` e usar `http://diasekovaltchuk-adv-dev:3003` em dev e
+`http://diasekovaltchuk-adv:3002` em produção. Não libere essas portas no nftables.

@@ -25,7 +25,7 @@ jobs:
       - name: Set up PHP
         uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # 2.37.0
         with:
-          php-version: "8.5.9"
+          php-version: "8.5.13"
           extensions: dom, intl, mbstring, zip
           coverage: xdebug
           tools: composer:2.10.2

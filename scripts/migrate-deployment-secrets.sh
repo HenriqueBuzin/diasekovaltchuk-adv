@@ -42,7 +42,8 @@ migrate_environment() {
   printf '%s' "$(secret_value "$legacy_file" TURNSTILE_SECRET_KEY)" > "$secrets_dir/turnstile_secret_key"
   printf '%s' "$(secret_value "$legacy_file" RECAPTCHA_SECRET_KEY)" > "$secrets_dir/recaptcha_secret_key"
   printf '%s' "$(secret_value "$legacy_file" HCAPTCHA_SECRET_KEY)" > "$secrets_dir/hcaptcha_secret_key"
-  chmod 600 "$secrets_dir"/*
+  chgrp 33 "$secrets_dir"/*
+  chmod 640 "$secrets_dir"/*
 
   awk '
     ! /^(APP_KEY|FLASK_SECRET_KEY|MAIL_PASSWORD|TURNSTILE_SECRET_KEY|RECAPTCHA_SECRET_KEY|HCAPTCHA_SECRET_KEY|SECRETS_DIR)=/
