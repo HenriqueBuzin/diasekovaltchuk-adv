@@ -1,4 +1,4 @@
-FROM node:24.18.1-bookworm-slim AS frontend-dependencies
+FROM node:24.22.3-bookworm-slim AS frontend-dependencies
 
 WORKDIR /app
 COPY package.json package-lock.json tsconfig.json ./
