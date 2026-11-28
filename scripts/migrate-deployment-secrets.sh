@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-envs_root=${1:-/root/projects/envs}
+envs_root=${1:-/srv/vps/projects/envs}
 project=diasekovaltchuk-adv
 
 secret_value() {

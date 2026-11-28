@@ -25,7 +25,7 @@ O frontend permanece totalmente TypeScript. Dependências são resolvidas pelos 
 ## Configuração e segurança
 
 A configuração vem do `.env` externo, ligado pelo Jenkins ao arquivo
-`/root/projects/envs/diasekovaltchuk-adv/<prod|dev>/diasekovaltchuk-adv-<prod|dev>.env`.
+`/srv/vps/projects/envs/diasekovaltchuk-adv/<prod|dev>/diasekovaltchuk-adv-<prod|dev>.env`.
 A pasta `secrets/` fica ao lado do env e `SECRETS_DIR` aponta para ela. Compose monta cinco
 arquivos em `/run/secrets`, sem copiar valores para o ambiente do processo. Laravel recebe
 a chave pelo `APP_KEY_FILE`. Valores diretos sensíveis são sobrescritos com vazio no ambiente do serviço.

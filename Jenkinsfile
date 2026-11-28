@@ -41,7 +41,7 @@ pipeline {
                               suffix="-dev"
                               stage_dir="dev"
                             fi
-                            config_dir="/root/projects/envs/diasekovaltchuk-adv/${stage_dir}"
+                            config_dir="/srv/vps/projects/envs/diasekovaltchuk-adv/${stage_dir}"
                             env_file="${config_dir}/diasekovaltchuk-adv${suffix}.env"
                             test -f "$env_file"
                             test -d "${config_dir}/secrets"
@@ -94,7 +94,7 @@ pipeline {
 
                     sh """
                         set -eu
-                        config_dir='/root/projects/envs/${project}/${stageDir}'
+                        config_dir='/srv/vps/projects/envs/${project}/${stageDir}'
                         env_file="\$config_dir/${project}${envSuffix}.env"
                         test -f "\$env_file"
                         test -d "\$config_dir/secrets"
@@ -105,7 +105,7 @@ pipeline {
                         export COMPOSE_PROJECT_NAME='${project}${suffix}'
                         export IMAGE_TAG=\$(git rev-parse --short=12 HEAD)
                         docker image inspect "${project}/app:\$IMAGE_TAG${suffix}" >/dev/null
-                        target='/root/projects/${project}${suffix}'
+                        target='/srv/vps/projects/${project}${suffix}'
                         mkdir -p "\$target"
                         tar --exclude='./.git' --exclude='./.env' \
                           --exclude='./node_modules' --exclude='./backend/vendor' \

@@ -7,13 +7,13 @@ export IMAGE_TAG=${2:?use: rollback-compose.sh <prod|dev> <image-tag>}
 case "$environment" in
   prod)
     export COMPOSE_PROJECT_NAME=diasekovaltchuk-adv
-    config_dir=/root/projects/envs/diasekovaltchuk-adv/prod
+    config_dir=/srv/vps/projects/envs/diasekovaltchuk-adv/prod
     env_file=$config_dir/diasekovaltchuk-adv-prod.env
     set -- -f docker-compose-prod.yml
     ;;
   dev)
     export COMPOSE_PROJECT_NAME=diasekovaltchuk-adv-dev
-    config_dir=/root/projects/envs/diasekovaltchuk-adv/dev
+    config_dir=/srv/vps/projects/envs/diasekovaltchuk-adv/dev
     env_file=$config_dir/diasekovaltchuk-adv-dev.env
     set -- -f docker-compose.yml
     ;;

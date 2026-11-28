@@ -16,7 +16,7 @@ Laravel responde `/api/*`, `/docs`, `/openapi.json` e entrega o bundle React nas
 Cada ambiente possui configuração comum e segredos separados:
 
 ```text
-/root/projects/envs/diasekovaltchuk-adv/
+/srv/vps/projects/envs/diasekovaltchuk-adv/
 ├── dev/
 │   ├── diasekovaltchuk-adv-dev.env
 │   └── secrets/
@@ -36,16 +36,16 @@ secrets/recaptcha_secret_key    -> /run/secrets/recaptcha_secret_key
 secrets/hcaptcha_secret_key     -> /run/secrets/hcaptcha_secret_key
 ```
 
-O deploy entrega o checkout em `/root/projects/diasekovaltchuk-adv` (`main`) e
-`/root/projects/diasekovaltchuk-adv-dev` (`dev`), criando o link `.env` também
+O deploy entrega o checkout em `/srv/vps/projects/diasekovaltchuk-adv` (`main`) e
+`/srv/vps/projects/diasekovaltchuk-adv-dev` (`dev`), criando o link `.env` também
 nesses diretórios. O runtime usa a imagem construída pelo SHA, sem copiar secrets
 para o checkout ou para a imagem.
 
 Para migrar os dois `.env` antigos sem apagá-los:
 
 ```bash
-cd /root/projects/diasekovaltchuk-adv-dev
-sh scripts/migrate-deployment-secrets.sh /root/projects/envs
+cd /srv/vps/projects/diasekovaltchuk-adv-dev
+sh scripts/migrate-deployment-secrets.sh /srv/vps/projects/envs
 ```
 
 O script cria `dev`, `prod` e seus `secrets`, remove os valores sensíveis apenas das novas cópias e aplica permissões
