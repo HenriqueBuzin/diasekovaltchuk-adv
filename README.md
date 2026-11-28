@@ -16,7 +16,7 @@ Laravel responde `/api/*`, `/docs`, `/openapi.json` e entrega o bundle React nas
 Cada ambiente possui configuração comum e segredos separados:
 
 ```text
-/srv/vps/projects/envs/diasekovaltchuk-adv/
+/srv/vps/envs/projects/diasekovaltchuk-adv/
 ├── dev/
 │   ├── diasekovaltchuk-adv-dev.env
 │   └── secrets/
@@ -45,7 +45,7 @@ Para migrar os dois `.env` antigos sem apagá-los:
 
 ```bash
 cd /srv/vps/projects/diasekovaltchuk-adv/dev
-sh scripts/migrate-deployment-secrets.sh /srv/vps/projects/envs
+sh scripts/migrate-deployment-secrets.sh /srv/vps/envs/projects
 ```
 
 O script cria `dev`, `prod` e seus `secrets`, remove os valores sensíveis apenas das novas cópias e aplica permissões

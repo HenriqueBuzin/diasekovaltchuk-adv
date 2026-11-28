@@ -41,7 +41,7 @@ pipeline {
                               suffix="-dev"
                               stage_dir="dev"
                             fi
-                            config_dir="/srv/vps/projects/envs/diasekovaltchuk-adv/${stage_dir}"
+                            config_dir="/srv/vps/envs/projects/diasekovaltchuk-adv/${stage_dir}"
                             env_file="${config_dir}/diasekovaltchuk-adv${suffix}.env"
                             test -f "$env_file"
                             test -d "${config_dir}/secrets"
@@ -94,7 +94,7 @@ pipeline {
 
                     sh """
                         set -eu
-                        config_dir='/srv/vps/projects/envs/${project}/${stageDir}'
+                        config_dir='/srv/vps/envs/projects/${project}/${stageDir}'
                         env_file="\$config_dir/${project}${envSuffix}.env"
                         test -f "\$env_file"
                         test -d "\$config_dir/secrets"
