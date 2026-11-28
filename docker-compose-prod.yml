@@ -66,6 +66,13 @@ services:
     env_file:
       - .env
     secrets: *app-secrets
+    volumes:
+      - type: bind
+        source: ${SECRETS_DIR:?SECRETS_DIR is required}
+        target: /run/openbao-ready
+        read_only: true
+        bind:
+          create_host_path: false
     networks:
       proxy-network:
         aliases:

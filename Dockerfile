@@ -78,4 +78,5 @@ RUN install -d -o www-data -g www-data \
 
 USER www-data
 EXPOSE 3002 3003
-CMD ["sh", "-c", "exec php artisan serve --host=0.0.0.0 --port=${PORT:-8000}"]
+COPY --chmod=0555 scripts/start-container.sh /usr/local/bin/start-app
+CMD ["/usr/local/bin/start-app"]

@@ -44,10 +44,6 @@ pipeline {
                             config_dir="/srv/vps/envs/projects/diasekovaltchuk-adv/${stage_dir}"
                             env_file="${config_dir}/diasekovaltchuk-adv${suffix}.env"
                             test -f "$env_file"
-                            test -d "${config_dir}/secrets"
-                            for secret in app_key mail_password turnstile_secret_key recaptcha_secret_key hcaptcha_secret_key; do
-                              test -f "${config_dir}/secrets/${secret}"
-                            done
                             ln -sfn "$env_file" .env
                             if [ "$PIPELINE_BRANCH" = "main" ]; then
                               export COMPOSE_PROJECT_NAME=diasekovaltchuk-adv
@@ -97,10 +93,6 @@ pipeline {
                         config_dir='/srv/vps/envs/projects/${project}/${stageDir}'
                         env_file="\$config_dir/${project}${envSuffix}.env"
                         test -f "\$env_file"
-                        test -d "\$config_dir/secrets"
-                        for secret in app_key mail_password turnstile_secret_key recaptcha_secret_key hcaptcha_secret_key; do
-                          test -f "\$config_dir/secrets/\$secret"
-                        done
                         ln -sfn "\$env_file" .env
                         export COMPOSE_PROJECT_NAME='${project}${suffix}'
                         export IMAGE_TAG=\$(git rev-parse --short=12 HEAD)
@@ -115,6 +107,7 @@ pipeline {
                         cd "\$target"
                         ln -sfn "\$env_file" .env
                         docker compose ${composeFiles} config --quiet
+                        docker compose ${composeFiles} run --rm --no-deps -T --entrypoint /bin/sh app -ec 'test -s "\$APP_KEY_FILE"; if [ "\${OPENBAO_SECRETS_REQUIRED:-0}" = "1" ]; then test -f /run/openbao-ready/.ready; fi'
                         docker compose ${composeFiles} down --remove-orphans || true
                         docker compose ${composeFiles} up -d --no-build --pull never --remove-orphans --wait --wait-timeout 120
                         docker compose ${composeFiles} ps
