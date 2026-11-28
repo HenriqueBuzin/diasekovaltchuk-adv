@@ -36,15 +36,15 @@ secrets/recaptcha_secret_key    -> /run/secrets/recaptcha_secret_key
 secrets/hcaptcha_secret_key     -> /run/secrets/hcaptcha_secret_key
 ```
 
-O deploy entrega o checkout em `/srv/vps/projects/diasekovaltchuk-adv` (`main`) e
-`/srv/vps/projects/diasekovaltchuk-adv-dev` (`dev`), criando o link `.env` também
+O deploy entrega o checkout em `/srv/vps/projects/diasekovaltchuk-adv/prod` (`main`) e
+`/srv/vps/projects/diasekovaltchuk-adv/dev` (`dev`), criando o link `.env` também
 nesses diretórios. O runtime usa a imagem construída pelo SHA, sem copiar secrets
 para o checkout ou para a imagem.
 
 Para migrar os dois `.env` antigos sem apagá-los:
 
 ```bash
-cd /srv/vps/projects/diasekovaltchuk-adv-dev
+cd /srv/vps/projects/diasekovaltchuk-adv/dev
 sh scripts/migrate-deployment-secrets.sh /srv/vps/projects/envs
 ```
 
